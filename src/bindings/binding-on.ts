@@ -1,6 +1,7 @@
 import type { ITemplateExpression, LambdaTemplateExpression, IBinding, IContainer, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 
 export class OnTemplateExpression<T extends EventTarget = EventTarget> implements ITemplateExpression<T, Event> {
+  $isExpression: true = true;
   public constructor(
     readonly type: string,
     readonly expression: LambdaTemplateExpression<T, Event>

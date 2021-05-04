@@ -1,6 +1,7 @@
 import type { ITemplateExpression, IBinding, IContainer, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 
 export class RefTemplateExpression implements ITemplateExpression<object, object> {
+  $isExpression: true = true;
   public constructor(
     readonly type: string | symbol,
   ) {}
@@ -21,6 +22,7 @@ export class RefBindingExpression implements IBindingExpression<object, unknown>
 }
 
 export class ViewModelRefTemplateExpression implements ITemplateExpression<object, object> {
+  $isExpression: true = true;
   public constructor(
     readonly type: string | symbol,
   ) {}

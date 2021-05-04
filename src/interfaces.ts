@@ -16,6 +16,7 @@ export type CreateElement = (type: string | Function, attrs: Record<string, any>
 export type LambdaTemplateExpression<TSource, TContext = any> = (s: TSource, c: TContext, sc?: Scope) => unknown;
 
 export interface ITemplateExpression<TSource, TContext> {
+  readonly $isExpression: true;
   /**
    * @param node The host element that this template expression belongs.
    * - For attribute, this should be the owning node
@@ -25,6 +26,10 @@ export interface ITemplateExpression<TSource, TContext> {
    * @param context
    */
   compile(node: TemplateNode, target: string | null, context: IContainer): IBindingExpression<TSource, TContext>;
+}
+
+export type IMultiTemplateExpression<TSource, TContext> = {
+  [key: string]: LambdaTemplateExpression<TSource, TContext> | ITemplateExpression<TSource, TContext>;
 }
 
 export interface IBindingExpression<TSource, TContext> {
@@ -46,11 +51,8 @@ export interface Scope<T extends object = object> {
  * @public
  */
 export type TemplateValue<TScope, TContext = any> =
-  | LambdaTemplateExpression<TScope>
   | string
   | number
+  | LambdaTemplateExpression<TScope>
   | ITemplateExpression<TScope, TContext>
-
-export interface HtmlTagger<TSource = any, TParent = any> {
-  (strings: TemplateStringsArray, ...values: TemplateValue<TSource, TParent>[]): any;
-}
+  | IMultiTemplateExpression<TScope, TContext>

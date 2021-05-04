@@ -1,4 +1,4 @@
-import { TemplateNode, CreateElement, HtmlTagger, TemplateValue } from "./interfaces";
+import { TemplateNode, CreateElement, TemplateValue } from "./interfaces";
 
 const MODE_SLASH = 0;
 const MODE_TEXT = 1;
