@@ -1,4 +1,5 @@
-import { IBinding, IBindingExpression, IContainer, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope } from "../interfaces";
+import type { IContainer } from "@aurelia/kernel";
+import { IBinding, IBindingExpression, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope } from "../interfaces";
 export declare class PropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
     private readonly expressions;
     readonly $isExpression: true;

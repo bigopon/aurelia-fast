@@ -2,6 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var runtime = require('@aurelia/runtime');
+var runtimeHtml = require('@aurelia/runtime-html');
+
 class TemplateNode {
     constructor(type, attrs, children) {
         this.type = type;
@@ -130,9 +133,10 @@ class MultiPropBindingExpression {
     }
 }
 class PropBindingExpression {
-    constructor(key, expression) {
+    constructor(key, expression, context) {
         this.key = key;
         this.expression = expression;
+        this.context = context;
     }
     get __i2() {
         return true;
@@ -141,20 +145,25 @@ class PropBindingExpression {
         const vm = target.$au?.viewModel;
         if (vm) {
             if (this.key in vm) {
-                return new ToTargetPropBinding(this.key, vm, this.expression);
+                return new ToTargetPropBinding(this.key, vm, this.expression, this.context.get(runtime.IObserverLocator));
             }
         }
-        return new ToTargetPropBinding(this.key, target, this.expression);
+        return new ToTargetPropBinding(this.key, target, this.expression, this.context.get(runtime.IObserverLocator));
         // throw new Error("Method not implemented.");
     }
 }
 class ToTargetPropBinding {
-    constructor(key, target, expression) {
+    constructor(key, target, expression, observerLocator) {
         this.key = key;
         this.target = target;
         this.expression = expression;
+        this.observerLocator = observerLocator;
     }
     bind(scope) {
+        const watcher = new runtimeHtml.ComputedWatcher(scope.source, this.observerLocator, this.expression, (newValue) => {
+            this.target[this.key] = newValue;
+        }, true);
+        watcher.$bind();
         this.target[this.key] = this.expression(scope.source, scope, scope);
     }
     unbind() {
@@ -193,7 +202,7 @@ class Template {
                                     value2 = value2.compile(node, _isSyntheticKey ? null : key2, context);
                                 }
                                 else if (typeof value2 === 'function') {
-                                    value2 = new PropBindingExpression(key2, value2);
+                                    value2 = new PropBindingExpression(key2, value2, context);
                                 }
                                 obj[key2] = value2;
                                 return obj;
@@ -204,7 +213,7 @@ class Template {
                         if (_isSyntheticKey) {
                             throw new Error(`No key for lambda: ${value.toString()}`);
                         }
-                        return new PropBindingExpression(key, value);
+                        return new PropBindingExpression(key, value, context);
                     }
                 }
                 return { name: key, value };

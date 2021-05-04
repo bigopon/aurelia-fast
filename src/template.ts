@@ -1,8 +1,9 @@
 import { OnTemplateExpression } from "./bindings/binding-on";
 import { RefTemplateExpression, ViewModelRefTemplateExpression } from "./bindings/binding-ref";
 import { CompiledTemplateNode, IBinding, IBindingExpression } from './interfaces';
-import type { ICompiledAttr, IContainer, ITemplateExpression, Scope, TemplateNode } from "./interfaces";
+import type { ICompiledAttr, ITemplateExpression, Scope, TemplateNode } from "./interfaces";
 import { MultiPropBindingExpression, PropBindingExpression } from "./bindings/binding-prop";
+import { IContainer } from "@aurelia/kernel";
 
 function isExpression<T1 extends object = object, T2 = unknown>(v: unknown): v is ITemplateExpression<T1, T2> {
   return (v as unknown as ITemplateExpression<T1, T2>)?.$isExpression === true;
@@ -39,7 +40,7 @@ export class Template {
                   if (isExpression(value2)) {
                     value2 = value2.compile(node, _isSyntheticKey ? null : key2, context);
                   } else if (typeof value2 === 'function') {
-                    value2 = new PropBindingExpression(key2, value2 as any);
+                    value2 = new PropBindingExpression(key2, value2 as any, context);
                   }
                   obj[key2] = value2;
                   return obj;
@@ -50,7 +51,7 @@ export class Template {
               if (_isSyntheticKey) {
                 throw new Error(`No key for lambda: ${value.toString()}`);
               }
-              return new PropBindingExpression(key, value);
+              return new PropBindingExpression(key, value, context);
             }
           }
           return { name: key, value };

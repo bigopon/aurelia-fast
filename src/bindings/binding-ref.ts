@@ -1,4 +1,5 @@
-import type { ITemplateExpression, IBinding, IContainer, IBindingExpression, TemplateNode, Scope } from "../interfaces";
+import type { IContainer } from "@aurelia/kernel";
+import type { ITemplateExpression, IBinding, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 
 export class RefTemplateExpression implements ITemplateExpression<object, object> {
   $isExpression: true = true;

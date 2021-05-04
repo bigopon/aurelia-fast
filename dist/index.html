@@ -1,17 +1,52 @@
-<script type="module" >
+<script type="importmap">
+    {
+        "imports": {
+            "@aurelia/kernel": "https://unpkg.com/@aurelia/kernel@2.0.0-alpha.2/dist/esm/index.js",
+            "@aurelia/runtime": "https://unpkg.com/@aurelia/runtime@2.0.0-alpha.2/dist/esm/index.js",
+            "@aurelia/runtime-html": "https://unpkg.com/@aurelia/runtime-html@2.0.0-alpha.2/dist/esm/index.js",
+            "@aurelia/platform": "https://unpkg.com/@aurelia/platform@2.0.0-alpha.2/dist/esm/index.js",
+            "@aurelia/platform-browser": "https://unpkg.com/@aurelia/platform-browser@2.0.0-alpha.2/dist/esm/index.js",
+            "@aurelia/metadata": "https://unpkg.com/@aurelia/metadata@2.0.0-alpha.2/dist/esm/index.js"
+        },
+        "scopes": {
+            "@aurelia/kernel": {
+                "@aurelia/platform": "https://unpkg.com/@aurelia/platform@2.0.0-alpha.2/dist/esm/index.js",
+                "@aurelia/metadata": "https://unpkg.com/@aurelia/metadata@2.0.0-alpha.2/dist/esm/index.js"
+            },
+            "@aurelia/runtime": {
+                "@aurelia/platform": "https://unpkg.com/@aurelia/platform@2.0.0-alpha.2/dist/esm/index.js",
+                "@aurelia/kernel": "https://unpkg.com/@aurelia/kernel@2.0.0-alpha.2/dist/esm/index.js",
+                "@aurelia/metadata": "https://unpkg.com/@aurelia/metadata@2.0.0-alpha.2/dist/esm/index.js"
+            }
+        }
+    }
+</script>
+<script type="module">
+    import { DI, Registration } from '@aurelia/kernel';
+    import { IPlatform, StandardConfiguration } from '@aurelia/runtime-html';
+    import { BrowserPlatform } from '@aurelia/platform-browser';
     import { html, On } from './esm/index.js'
+
+    const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
+    const container = DI.createContainer().register(
+        Registration.instance(IPlatform, PLATFORM),
+        StandardConfiguration,
+    );
 
     const rawTemplate = html`
         <div textContent=${x => x.count} ${On('click', (x, e) => x)} @click=${x => x} />
         <button ${On('click', (x, e)=> x.onClick(e))} textContent='Hello world' />
         <button ${On('mouseenter', (x, e) => x.onMouseEnter(e))} textContent='A self close button' />
     `;
-    const compiledTemplate = rawTemplate.compile({ get() {}, getResource() {} });
+    const compiledTemplate = rawTemplate.compile(container);
     const view = compiledTemplate.render();
     view.appendTo(document.body);
-    // debugger;
     view.bind({
-        source: {
+        source: window.source = {
+            _count: 0,
+            get count() {
+                return this._count;
+            },
             get color() {
                 console.log('accessed color')
             },
@@ -19,7 +54,8 @@
                 console.log('accessed background');
             },
             onClick(e) {
-                console.log('clicked', e.target)
+                this._count++;
+                console.log('clicked', e.target);
             },
             onMouseEnter(e) {
                 console.log('mouse entered', e.target);

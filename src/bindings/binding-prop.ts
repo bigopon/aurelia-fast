@@ -1,4 +1,7 @@
-import { IBinding, IBindingExpression, IContainer, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope } from "../interfaces";
+import type { IContainer } from "@aurelia/kernel";
+import { IObserverLocator } from "@aurelia/runtime";
+import { ComputedWatcher } from '@aurelia/runtime-html';
+import { IBinding, IBindingExpression, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope } from "../interfaces";
 
 export class PropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
   readonly $isExpression: true = true;
@@ -59,7 +62,8 @@ export class PropBindingExpression implements IBindingExpression<object, object>
 
   constructor(
     readonly key: string | symbol,
-    readonly expression: LambdaTemplateExpression<object>
+    readonly expression: LambdaTemplateExpression<object>,
+    readonly context: IContainer,
   ) {
 
   }
@@ -68,10 +72,10 @@ export class PropBindingExpression implements IBindingExpression<object, object>
     const vm = (target as any).$au?.viewModel;
     if (vm) {
       if (this.key in vm) {
-        return new ToTargetPropBinding(this.key, vm, this.expression);
+        return new ToTargetPropBinding(this.key, vm, this.expression, this.context.get(IObserverLocator));
       }
     }
-    return new ToTargetPropBinding(this.key, target, this.expression);
+    return new ToTargetPropBinding(this.key, target, this.expression, this.context.get(IObserverLocator));
     // throw new Error("Method not implemented.");
   }
 }
@@ -80,12 +84,23 @@ export class ToTargetPropBinding implements IBinding {
   constructor(
     readonly key: string | symbol,
     readonly target: any,
-    readonly expression: LambdaTemplateExpression<object>
+    readonly expression: LambdaTemplateExpression<object>,
+    readonly observerLocator: IObserverLocator,
   ) {
 
   }
 
   bind(scope: Scope): void {
+    const watcher = new ComputedWatcher(
+      scope.source as any,
+      this.observerLocator,
+      this.expression,
+      (newValue) => {
+        this.target[this.key] = newValue;
+      },
+      true
+    );
+    watcher.$bind();
     this.target[this.key] = this.expression(scope.source, scope, scope);
   }
 

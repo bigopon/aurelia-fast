@@ -1,6 +1,7 @@
 import { RefTemplateExpression, ViewModelRefTemplateExpression } from "./bindings/binding-ref";
-import { CompiledTemplateNode } from './interfaces';
-import type { IContainer, ITemplateExpression, Scope, TemplateNode } from "./interfaces";
+import { CompiledTemplateNode, IBinding } from './interfaces';
+import type { ITemplateExpression, Scope, TemplateNode } from "./interfaces";
+import { IContainer } from "@aurelia/kernel";
 export declare class Template {
     readonly nodes: TemplateNode[];
     constructor(nodes: TemplateNode[]);
@@ -9,16 +10,19 @@ export declare class Template {
 export declare class CompiledTemplate {
     readonly nodes: CompiledTemplateNode[];
     constructor(nodes: CompiledTemplateNode[]);
-    render(): void;
+    render(): View;
 }
 export declare class View {
     fragment: DocumentFragment;
+    bindings: IBinding<object>[];
     firstChild?: Node;
     lastChild?: Node;
-    constructor(fragment: DocumentFragment);
+    constructor(fragment: DocumentFragment, bindings: IBinding<object>[]);
     insertBefore(target: Node): void;
     appendTo(target: Node): void;
     remove(): void;
+    bind(scope: any): void;
+    unbind(): void;
 }
 export declare function On<TSrc extends object = object>(event: 'click', handler: (src: TSrc, e: MouseEvent, scope?: Scope) => unknown): ITemplateExpression<TSrc, MouseEvent>;
 export declare function On<TSrc extends object = object>(event: 'mousedown', handler: (src: TSrc, e: MouseEvent, scope?: Scope) => unknown): ITemplateExpression<TSrc, MouseEvent>;

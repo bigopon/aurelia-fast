@@ -1,4 +1,5 @@
-import type { ITemplateExpression, LambdaTemplateExpression, IBinding, IContainer, IBindingExpression, TemplateNode, Scope } from "../interfaces";
+import type { IContainer } from "@aurelia/kernel";
+import type { ITemplateExpression, LambdaTemplateExpression, IBinding, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 
 export class OnTemplateExpression<T extends EventTarget = EventTarget> implements ITemplateExpression<T, Event> {
   $isExpression: true = true;

@@ -1,7 +1,4 @@
-export interface IContainer {
-    get(key: unknown): any;
-    getResource(key: unknown): unknown | null;
-}
+import { IContainer } from '@aurelia/kernel';
 export declare class TemplateNode {
     readonly type: string | Function;
     readonly attrs: Record<string, any>;
@@ -10,9 +7,9 @@ export declare class TemplateNode {
 }
 export declare class CompiledTemplateNode {
     readonly type: string | Function;
-    readonly attrs: ICompiledAttr[];
+    readonly attrs: (ICompiledAttr | IBindingExpression<object, unknown>)[];
     readonly children: (CompiledTemplateNode | string)[];
-    constructor(type: string | Function, attrs: ICompiledAttr[], children: (CompiledTemplateNode | string)[]);
+    constructor(type: string | Function, attrs: (ICompiledAttr | IBindingExpression<object, unknown>)[], children: (CompiledTemplateNode | string)[]);
 }
 export interface ICompiledAttr {
     name: string | symbol;

@@ -1,7 +1,4 @@
-export interface IContainer {
-  get(key: unknown): any;
-  getResource(key: unknown): unknown | null;
-}
+import { DI, IContainer } from '@aurelia/kernel';
 
 export class TemplateNode {
   constructor(
