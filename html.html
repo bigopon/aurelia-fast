@@ -166,7 +166,15 @@
   
   function Comp() {}
   
-  console.log(html`<div ${5} /><${Comp} /><div b=${5} ${on('click', a => a)} /><div>${x => x.name}</>`)
+  console.log(html`
+    <div ${5} />
+    <${Comp} />
+    <div b=${5} ${on('click', a => a)} />
+    <p>
+      <span>Hello</span>
+    </p>
+    <div>${x => x.name}</>`
+  )
   
   </script>
   <body></body>
