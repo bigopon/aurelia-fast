@@ -18,3 +18,5 @@ html<App>`
     <button ${On('mousedown', (x, e) => x.onMouseEnter(e))}>
     <div square=${{ color: x => x.color, bg: x => x.background }} />
 `
+
+export { html, On }
