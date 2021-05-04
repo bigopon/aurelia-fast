@@ -1,7 +1,7 @@
 import { IBinding, IBindingExpression, IContainer, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope } from "../interfaces";
 
 export class PropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
-  $isExpression: true = true;
+  readonly $isExpression: true = true;
   constructor(
     private readonly expressions: [toView?: LambdaTemplateExpression<T>, fromView?: LambdaTemplateExpression<T>]
   ) {
@@ -15,9 +15,8 @@ export class PropTemplateExpression<T extends object = object> implements ITempl
   }
 }
 
-
 export class MultiPropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
-  $isExpression: true = true;
+  readonly $isExpression: true = true;
   constructor(
     private readonly expressions: Record<string | symbol, [toView?: LambdaTemplateExpression<T>, fromView?: LambdaTemplateExpression<T>]>
   ) {

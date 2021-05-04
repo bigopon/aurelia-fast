@@ -177,8 +177,64 @@ class EventBinding {
     }
 }
 
+class RefTemplateExpression {
+    constructor(type) {
+        this.type = type;
+        this.$isExpression = true;
+    }
+    compile(node, target, context) {
+        return new RefBindingExpression(this.type);
+    }
+}
+class RefBindingExpression {
+    constructor(type) {
+        this.type = type;
+    }
+    create(target) {
+        return new RefBinding(target, this.type);
+    }
+}
+class ViewModelRefTemplateExpression {
+    constructor(type) {
+        this.type = type;
+        this.$isExpression = true;
+    }
+    compile(node, target, context) {
+        return new ViewModelRefBindingExpression(this.type);
+    }
+}
+class ViewModelRefBindingExpression {
+    constructor(type) {
+        this.type = type;
+    }
+    create(target) {
+        return new RefBinding(target['$au'].viewModel, this.type);
+    }
+}
+class RefBinding {
+    constructor(target, key) {
+        this.target = target;
+        this.key = key;
+    }
+    bind(scope) {
+        this.scope = scope;
+        scope.source[this.key] = this.target;
+    }
+    unbind() {
+        if (this.scope.source[this.key] === this.target) {
+            this.scope.source[this.key] = null;
+        }
+    }
+}
+
 function On(event, handler) {
     return new OnTemplateExpression(event, handler);
+}
+function Ref(key) {
+    return new RefTemplateExpression(key);
+}
+function ViewModelRef(key) {
+    return new ViewModelRefTemplateExpression(key);
 }
 
 html `
@@ -186,8 +242,11 @@ html `
     <button ${On('click', (x, e) => x.onClick(e))} />
     <button ${On('mousedown', (x, e) => x.onMouseEnter(e))}>
     <div square=${{ color: x => x.color, bg: x => x.background }} />
+    <div square=${{ color: [x => x.color, (x, a) => a.background = x], bg: x => x.background }} />
 `;
 
 exports.On = On;
+exports.Ref = Ref;
+exports.ViewModelRef = ViewModelRef;
 exports.html = html;
 //# sourceMappingURL=index.js.map

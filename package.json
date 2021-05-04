@@ -2,10 +2,12 @@
   "name": "aurelia-fast",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/esm/index.js",
   "scripts": {
     "test": "npm run build && node tests/emit.js",
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
+    "postbuild": "npm run build:types"
   },
   "repository": {
     "type": "git",

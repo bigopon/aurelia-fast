@@ -14,6 +14,11 @@ export class TemplateNode {
 export type CreateElement = (type: string | Function, attrs: Record<string, any>, ...children: (TemplateNode | string)[]) => TemplateNode;
 
 export type LambdaTemplateExpression<TSource, TContext = any> = (s: TSource, c: TContext, sc?: Scope) => unknown;
+export type FromViewLambdaTemplateExpression<TSrc, TContext = any, TVal = any> = (v: TVal, s: TSrc, c: TContext, sc: Scope) => unknown;
+export type TupleLambdaTemplateExpression<TSrc, TContext> =
+  [toView: LambdaTemplateExpression<TSrc, TContext>, fromView: never]
+  | [toView: never, fromView: FromViewLambdaTemplateExpression<TSrc, TContext>]
+  | [toView: LambdaTemplateExpression<TSrc, TContext>, fromView: FromViewLambdaTemplateExpression<TSrc, TContext>]
 
 export interface ITemplateExpression<TSource, TContext> {
   readonly $isExpression: true;
@@ -29,7 +34,9 @@ export interface ITemplateExpression<TSource, TContext> {
 }
 
 export type IMultiTemplateExpression<TSource, TContext> = {
-  [key: string]: LambdaTemplateExpression<TSource, TContext> | ITemplateExpression<TSource, TContext>;
+  [key: string]: LambdaTemplateExpression<TSource, TContext>
+    | TupleLambdaTemplateExpression<TSource, TContext>
+    | ITemplateExpression<TSource, TContext>;
 }
 
 export interface IBindingExpression<TSource, TContext> {
@@ -54,5 +61,6 @@ export type TemplateValue<TScope, TContext = any> =
   | string
   | number
   | LambdaTemplateExpression<TScope>
+  | TupleLambdaTemplateExpression<TScope, TContext>
   | ITemplateExpression<TScope, TContext>
   | IMultiTemplateExpression<TScope, TContext>

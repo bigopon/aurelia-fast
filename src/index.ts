@@ -1,5 +1,5 @@
 import { html } from "./template-compiler";
-import { On } from "./template";
+import { On, Ref, ViewModelRef } from "./template";
 
 interface App {
     name: string;
@@ -17,6 +17,7 @@ html<App>`
     <button ${On('click', (x, e)=> x.onClick(e))} />
     <button ${On('mousedown', (x, e) => x.onMouseEnter(e))}>
     <div square=${{ color: x => x.color, bg: x => x.background }} />
+    <div square=${{ color: [x => x.color, (x: string, a) => a.background = x], bg: x => x.background }} />
 `
 
-export { html, On }
+export { html, On, Ref, ViewModelRef };
