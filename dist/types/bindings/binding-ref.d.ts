@@ -7,6 +7,7 @@ export declare class RefTemplateExpression implements ITemplateExpression<object
 }
 export declare class RefBindingExpression implements IBindingExpression<object, unknown> {
     readonly type: string | symbol;
+    get __i2(): true;
     constructor(type: string | symbol);
     create(target: Element): RefBinding;
 }
@@ -18,6 +19,7 @@ export declare class ViewModelRefTemplateExpression implements ITemplateExpressi
 }
 export declare class ViewModelRefBindingExpression implements IBindingExpression<object, unknown> {
     readonly type: string | symbol;
+    get __i2(): true;
     constructor(type: string | symbol);
     create(target: Element): RefBinding;
 }

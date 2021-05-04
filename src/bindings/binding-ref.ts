@@ -12,6 +12,10 @@ export class RefTemplateExpression implements ITemplateExpression<object, object
 }
 
 export class RefBindingExpression implements IBindingExpression<object, unknown> {
+  get __i2(): true {
+    return true;
+  }
+
   constructor(
     readonly type: string | symbol,
   ) {}
@@ -33,6 +37,10 @@ export class ViewModelRefTemplateExpression implements ITemplateExpression<objec
 }
 
 export class ViewModelRefBindingExpression implements IBindingExpression<object, unknown> {
+  get __i2(): true {
+    return true;
+  }
+
   constructor(
     readonly type: string | symbol,
   ) {}

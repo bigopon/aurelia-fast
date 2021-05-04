@@ -10,6 +10,7 @@ export declare class OnBindingExpression<T extends EventTarget> implements IBind
     readonly type: string;
     readonly expression: LambdaTemplateExpression<T, Event>;
     constructor(type: string, expression: LambdaTemplateExpression<T, Event>);
+    get __i2(): true;
     create(target: Element): EventBinding<T>;
 }
 export declare class EventBinding<T extends EventTarget> implements IBinding<T> {

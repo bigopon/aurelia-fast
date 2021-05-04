@@ -1,4 +1,5 @@
 import { TemplateNode, CreateElement, TemplateValue } from "./interfaces";
+import { Template } from "./template";
 
 const MODE_SLASH = 0;
 const MODE_TEXT = 1;
@@ -9,7 +10,7 @@ const MODE_PROP_SET = 5;
 const MODE_PROP_APPEND = 6;
 
 export function html<TSource, TContext = any>(strings: TemplateStringsArray, ...values: TemplateValue<TSource, TContext>[]) {
-  return (build as any).call(createNode, strings, ...values);
+  return new Template((build as any).call(createNode, strings, ...values));
 }
 
 function createNode(type: string | Function, attrs: Record<string, any>, ...children: (TemplateNode | string)[]) {
@@ -19,6 +20,12 @@ function createNode(type: string | Function, attrs: Record<string, any>, ...chil
 const build = function(this: CreateElement, statics: TemplateStringsArray): TemplateNode[] {
   const fields = arguments as unknown as [TemplateStringsArray, ...unknown[]];
   const h = this;
+  const attrsSyntheticAttrCountMap = new WeakMap<object, number>();
+  const getSyntheticCount = (attrs: object) => {
+    const currentCount = (attrsSyntheticAttrCountMap.get(attrs) ?? 0) + 1;
+    attrsSyntheticAttrCountMap.set(attrs, currentCount);
+    return currentCount - 1;
+  }
 
   let mode: number | any[] = MODE_TEXT;
   let buffer = '';
@@ -26,7 +33,6 @@ const build = function(this: CreateElement, statics: TemplateStringsArray): Temp
   let current: any[] = [0];
   let char: string;
   let propName: string;
-  let syntheticCount = 0;
 
   const commit = (field?: number) => {
     if (mode === MODE_TEXT && (field || (buffer = buffer.replace(/^\s*\n\s*|\s*\n\s*$/g, '')))) {
@@ -43,7 +49,7 @@ const build = function(this: CreateElement, statics: TemplateStringsArray): Temp
       (current[2] ??= {})[buffer] = true;
     }
     else if (mode === MODE_WHITESPACE && !buffer && field) {
-      (current[2] ??= {})[`a__${syntheticCount}`] = fields[field];
+      (current[2] ??= {})[`a__${getSyntheticCount(current[2])}`] = fields[field];
     }
     else if (mode >= MODE_PROP_SET) {
       if (mode === MODE_PROP_SET) {

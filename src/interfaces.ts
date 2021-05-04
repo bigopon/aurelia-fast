@@ -11,6 +11,19 @@ export class TemplateNode {
   ) {}
 }
 
+export class CompiledTemplateNode {
+  constructor(
+    public readonly type: string | Function,
+    public readonly attrs: (ICompiledAttr | IBindingExpression<object, unknown>)[],
+    public readonly children: (CompiledTemplateNode | string)[],
+  ) {}
+}
+
+export interface ICompiledAttr {
+  name: string | symbol;
+  value: any;
+}
+
 export type CreateElement = (type: string | Function, attrs: Record<string, any>, ...children: (TemplateNode | string)[]) => TemplateNode;
 
 export type LambdaTemplateExpression<TSource, TContext = any> = (s: TSource, c: TContext, sc?: Scope) => unknown;
@@ -40,6 +53,7 @@ export type IMultiTemplateExpression<TSource, TContext> = {
 }
 
 export interface IBindingExpression<TSource, TContext> {
+  readonly __i2: true;
   create(target: Element): IBinding<TSource extends object ? TSource : object>;
 }
 

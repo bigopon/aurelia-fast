@@ -18,6 +18,10 @@ export class OnBindingExpression<T extends EventTarget> implements IBindingExpre
     readonly expression: LambdaTemplateExpression<T, Event>
   ) {}
 
+  get __i2(): true {
+    return true;
+  }
+
   create(target: Element) {
     return new EventBinding(target, this.type, this.expression);
   }
@@ -43,6 +47,6 @@ export class EventBinding<T extends EventTarget> implements IBinding<T> {
   }
 
   handleEvent(e: Event) {
-    this.expression.call(undefined, this.target as T, e, this.scope);
+    this.expression.call(undefined, this.scope.source as T, e, this.scope);
   }
 }

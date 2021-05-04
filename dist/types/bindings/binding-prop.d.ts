@@ -11,10 +11,24 @@ export declare class MultiPropTemplateExpression<T extends object = object> impl
     constructor(expressions: Record<string | symbol, [toView?: LambdaTemplateExpression<T>, fromView?: LambdaTemplateExpression<T>]>);
     compile(node: TemplateNode, target: string, context: IContainer): IBindingExpression<T, object>;
 }
-export declare class PropBindingExpression<T extends object = object> implements IBindingExpression<T, object> {
-    create(target: unknown): IBinding;
+export declare class MultiPropBindingExpression<T extends object = object> implements IBindingExpression<T, object> {
+    readonly expressions: Record<string | symbol, [toView?: LambdaTemplateExpression<T>, fromView?: LambdaTemplateExpression<T>]>;
+    get __i2(): true;
+    constructor(expressions: Record<string | symbol, [toView?: LambdaTemplateExpression<T>, fromView?: LambdaTemplateExpression<T>]>);
+    create(target: Element): IBinding;
+}
+export declare class PropBindingExpression implements IBindingExpression<object, object> {
+    readonly key: string | symbol;
+    readonly expression: LambdaTemplateExpression<object>;
+    get __i2(): true;
+    constructor(key: string | symbol, expression: LambdaTemplateExpression<object>);
+    create(target: Element): IBinding;
 }
 export declare class ToTargetPropBinding implements IBinding {
+    readonly key: string | symbol;
+    readonly target: any;
+    readonly expression: LambdaTemplateExpression<object>;
+    constructor(key: string | symbol, target: any, expression: LambdaTemplateExpression<object>);
     bind(scope: Scope): void;
     unbind(): void;
 }

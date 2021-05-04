@@ -6,6 +6,7 @@
   "scripts": {
     "test": "npm run build && node tests/emit.js",
     "build": "rollup -c",
+    "build:watch": "rollup -c -w",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "postbuild": "npm run build:types"
   },

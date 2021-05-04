@@ -8,6 +8,16 @@ export declare class TemplateNode {
     readonly children: (TemplateNode | string)[];
     constructor(type: string | Function, attrs: Record<string, any>, children: (TemplateNode | string)[]);
 }
+export declare class CompiledTemplateNode {
+    readonly type: string | Function;
+    readonly attrs: ICompiledAttr[];
+    readonly children: (CompiledTemplateNode | string)[];
+    constructor(type: string | Function, attrs: ICompiledAttr[], children: (CompiledTemplateNode | string)[]);
+}
+export interface ICompiledAttr {
+    name: string | symbol;
+    value: any;
+}
 export declare type CreateElement = (type: string | Function, attrs: Record<string, any>, ...children: (TemplateNode | string)[]) => TemplateNode;
 export declare type LambdaTemplateExpression<TSource, TContext = any> = (s: TSource, c: TContext, sc?: Scope) => unknown;
 export declare type FromViewLambdaTemplateExpression<TSrc, TContext = any, TVal = any> = (v: TVal, s: TSrc, c: TContext, sc: Scope) => unknown;
@@ -31,6 +41,7 @@ export declare type IMultiTemplateExpression<TSource, TContext> = {
     [key: string]: LambdaTemplateExpression<TSource, TContext> | TupleLambdaTemplateExpression<TSource, TContext> | ITemplateExpression<TSource, TContext>;
 };
 export interface IBindingExpression<TSource, TContext> {
+    readonly __i2: true;
     create(target: Element): IBinding<TSource extends object ? TSource : object>;
 }
 export interface IBinding<T extends object = object> {

@@ -1,0 +1,31 @@
+<script type="module" >
+    import { html, On } from './esm/index.js'
+
+    const rawTemplate = html`
+        <div textContent=${x => x.count} ${On('click', (x, e) => x)} @click=${x => x} />
+        <button ${On('click', (x, e)=> x.onClick(e))} textContent='Hello world' />
+        <button ${On('mouseenter', (x, e) => x.onMouseEnter(e))} textContent='A self close button' />
+    `;
+    const compiledTemplate = rawTemplate.compile({ get() {}, getResource() {} });
+    const view = compiledTemplate.render();
+    view.appendTo(document.body);
+    // debugger;
+    view.bind({
+        source: {
+            get color() {
+                console.log('accessed color')
+            },
+            get background() {
+                console.log('accessed background');
+            },
+            onClick(e) {
+                console.log('clicked', e.target)
+            },
+            onMouseEnter(e) {
+                console.log('mouse entered', e.target);
+            }
+            
+        }
+    });
+
+</script>
