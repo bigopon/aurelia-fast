@@ -2,7 +2,10 @@ import type { IContainer } from "@aurelia/kernel";
 import type { ITemplateExpression, IBinding, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 
 export class RefTemplateExpression implements ITemplateExpression<object, object> {
-  $isExpression: true = true;
+  get __te(): true {
+    return true;
+  }
+
   public constructor(
     readonly type: string | symbol,
   ) {}
@@ -13,7 +16,7 @@ export class RefTemplateExpression implements ITemplateExpression<object, object
 }
 
 export class RefBindingExpression implements IBindingExpression<object, unknown> {
-  get __i2(): true {
+  get __be(): true {
     return true;
   }
 
@@ -27,7 +30,10 @@ export class RefBindingExpression implements IBindingExpression<object, unknown>
 }
 
 export class ViewModelRefTemplateExpression implements ITemplateExpression<object, object> {
-  $isExpression: true = true;
+  get __te(): true {
+    return true;
+  }
+
   public constructor(
     readonly type: string | symbol,
   ) {}
@@ -38,7 +44,7 @@ export class ViewModelRefTemplateExpression implements ITemplateExpression<objec
 }
 
 export class ViewModelRefBindingExpression implements IBindingExpression<object, unknown> {
-  get __i2(): true {
+  get __be(): true {
     return true;
   }
 

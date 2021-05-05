@@ -32,7 +32,7 @@ export type TupleLambdaTemplateExpression<TSrc, TContext> =
   // | [toView?: LambdaTemplateExpression<TSrc, TContext>, fromView?: FromViewLambdaTemplateExpression<TSrc, TContext>]
 
 export interface ITemplateExpression<TSource, TContext> {
-  readonly $isExpression: true;
+  readonly __te: true;
   /**
    * @param node The host element that this template expression belongs.
    * - For attribute, this should be the owning node
@@ -51,7 +51,7 @@ export type IMultiTemplateExpression<TSource, TContext> = {
 }
 
 export interface IBindingExpression<TSource, TContext> {
-  readonly __i2: true;
+  readonly __be: true;
   create(target: Element): IBinding<TSource extends object ? TSource : object>;
 }
 

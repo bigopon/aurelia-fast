@@ -2,7 +2,10 @@ import type { IContainer } from "@aurelia/kernel";
 import type { ITemplateExpression, LambdaTemplateExpression, IBinding, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 
 export class OnTemplateExpression<T extends EventTarget = EventTarget> implements ITemplateExpression<T, Event> {
-  $isExpression: true = true;
+  get __te(): true {
+    return true;
+  }
+
   public constructor(
     readonly type: string,
     readonly expression: LambdaTemplateExpression<T, Event>
@@ -19,7 +22,7 @@ export class OnBindingExpression<T extends EventTarget> implements IBindingExpre
     readonly expression: LambdaTemplateExpression<T, Event>
   ) {}
 
-  get __i2(): true {
+  get __be(): true {
     return true;
   }
 

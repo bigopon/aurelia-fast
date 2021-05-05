@@ -4,7 +4,7 @@ import { ComputedWatcher } from '@aurelia/runtime-html';
 import { IBinding, IBindingExpression, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope, FromViewLambdaTemplateExpression, TupleLambdaTemplateExpression } from "../interfaces";
 
 export class PropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
-  get $isExpression(): true {
+  get __te(): true {
     return true;
   }
 
@@ -22,7 +22,7 @@ export class PropTemplateExpression<T extends object = object> implements ITempl
 }
 
 export class TwoWayPropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
-  get $isExpression(): true {
+  get __te(): true {
     return true;
   }
 
@@ -38,7 +38,7 @@ export class TwoWayPropTemplateExpression<T extends object = object> implements 
 }
 
 export class MultiPropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
-  get $isExpression(): true {
+  get __te(): true {
     return true;
   }
 
@@ -56,7 +56,7 @@ export class MultiPropTemplateExpression<T extends object = object> implements I
 }
 
 export class MultiPropBindingExpression<T extends object = object> implements IBindingExpression<T, object> {
-  get __i2(): true {
+  get __be(): true {
     return true;
   }
 
@@ -78,7 +78,7 @@ export class MultiPropBindingExpression<T extends object = object> implements IB
 }
 
 export class PropBindingExpression implements IBindingExpression<object, object> {
-  get __i2(): true {
+  get __be(): true {
     return true;
   }
 
@@ -103,7 +103,7 @@ export class PropBindingExpression implements IBindingExpression<object, object>
 }
 
 export class TwoWayPropBindingExpression<T extends object = object> implements IBindingExpression<object, object> {
-  get __i2(): true {
+  get __be(): true {
     return true;
   }
 

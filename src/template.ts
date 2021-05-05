@@ -6,11 +6,11 @@ import { MultiPropBindingExpression, PropBindingExpression, TwoWayPropBindingExp
 import { IContainer } from "@aurelia/kernel";
 
 function isExpression<T1 extends object = object, T2 = unknown>(v: unknown): v is ITemplateExpression<T1, T2> {
-  return (v as unknown as ITemplateExpression<T1, T2>)?.$isExpression === true;
+  return (v as unknown as ITemplateExpression<T1, T2>)?.__te === true;
 }
 
 function isBindingExpression(v: unknown): v is IBindingExpression<object, unknown> {
-  return (v as unknown as IBindingExpression<object, unknown>)?.__i2 === true;
+  return (v as unknown as IBindingExpression<object, unknown>)?.__be === true;
 }
 
 function isSyntheticKey(key: string) {
@@ -28,51 +28,53 @@ export class Template {
         node.type,
         node.attrs === null
           ? []
-          : Object.entries(node.attrs).map(([key, value]) => {
-          const _isSyntheticKey = isSyntheticKey(key);
-          switch (typeof value) {
-            case 'object': {
-              if (value === null) {
-                throw new Error('Expression cannot be null');
-              }
-              if (isExpression(value)) {
-                return value.compile(node, _isSyntheticKey ? null : key, context);
-              } else if (value instanceof Array) {
-                if (_isSyntheticKey) {
-                  throw new Error('Array syntax cannot be used without target prop');
-                }
-                const [toView, fromView] = value;
-                if (typeof toView !== 'function' && typeof fromView !== 'function') {
-                  throw new Error('Binding must be at least have 1 direction');
-                }
-                if (toView && fromView) {
-                  return new TwoWayPropBindingExpression(
-                    key,
-                    value as [LambdaTemplateExpression<object, unknown>, FromViewLambdaTemplateExpression<object, unknown>],
-                    context
-                  );
-                }
-              } else {
-                return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
-                  if (isExpression(value2)) {
-                    value2 = value2.compile(node, _isSyntheticKey ? null : key2, context);
-                  } else if (typeof value2 === 'function') {
-                    value2 = new PropBindingExpression(key2, value2 as any, context);
+          : Object
+            .entries(node.attrs)
+            .map(([key, value]) => {
+              const _isSyntheticKey = isSyntheticKey(key);
+              switch (typeof value) {
+                case 'object': {
+                  if (value === null) {
+                    throw new Error('Expression cannot be null');
                   }
-                  obj[key2] = value2;
-                  return obj;
-                }, {} as { [key: string]: unknown }) as any);
+                  if (isExpression(value)) {
+                    return value.compile(node, _isSyntheticKey ? null : key, context);
+                  } else if (value instanceof Array) {
+                    if (_isSyntheticKey) {
+                      throw new Error('Array syntax cannot be used without target prop');
+                    }
+                    const [toView, fromView] = value;
+                    if (typeof toView !== 'function' && typeof fromView !== 'function') {
+                      throw new Error('Binding must be at least have 1 direction');
+                    }
+                    if (toView && fromView) {
+                      return new TwoWayPropBindingExpression(
+                        key,
+                        value as [LambdaTemplateExpression<object, unknown>, FromViewLambdaTemplateExpression<object, unknown>],
+                        context
+                      );
+                    }
+                  } else {
+                    return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
+                      if (isExpression(value2)) {
+                        value2 = value2.compile(node, _isSyntheticKey ? null : key2, context);
+                      } else if (typeof value2 === 'function') {
+                        value2 = new PropBindingExpression(key2, value2 as any, context);
+                      }
+                      obj[key2] = value2;
+                      return obj;
+                    }, {} as { [key: string]: unknown }) as any);
+                  }
+                }
+                case 'function': {
+                  if (_isSyntheticKey) {
+                    throw new Error(`No key for lambda: ${value.toString()}`);
+                  }
+                  return new PropBindingExpression(key, value, context);
+                }
               }
-            }
-            case 'function': {
-              if (_isSyntheticKey) {
-                throw new Error(`No key for lambda: ${value.toString()}`);
-              }
-              return new PropBindingExpression(key, value, context);
-            }
-          }
-          return { name: key, value };
-        }),
+              return { name: key, value };
+            }),
         node.children.map(c => typeof c === 'string' ? c : compileNode(c))
       );
     }

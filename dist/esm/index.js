@@ -20,7 +20,9 @@ class OnTemplateExpression {
     constructor(type, expression) {
         this.type = type;
         this.expression = expression;
-        this.$isExpression = true;
+    }
+    get __te() {
+        return true;
     }
     compile(node, target, context) {
         return new OnBindingExpression(this.type, this.expression);
@@ -31,7 +33,7 @@ class OnBindingExpression {
         this.type = type;
         this.expression = expression;
     }
-    get __i2() {
+    get __be() {
         return true;
     }
     create(target) {
@@ -60,7 +62,9 @@ class EventBinding {
 class RefTemplateExpression {
     constructor(type) {
         this.type = type;
-        this.$isExpression = true;
+    }
+    get __te() {
+        return true;
     }
     compile(node, target, context) {
         return new RefBindingExpression(this.type);
@@ -70,7 +74,7 @@ class RefBindingExpression {
     constructor(type) {
         this.type = type;
     }
-    get __i2() {
+    get __be() {
         return true;
     }
     create(target) {
@@ -80,7 +84,9 @@ class RefBindingExpression {
 class ViewModelRefTemplateExpression {
     constructor(type) {
         this.type = type;
-        this.$isExpression = true;
+    }
+    get __te() {
+        return true;
     }
     compile(node, target, context) {
         return new ViewModelRefBindingExpression(this.type);
@@ -90,7 +96,7 @@ class ViewModelRefBindingExpression {
     constructor(type) {
         this.type = type;
     }
-    get __i2() {
+    get __be() {
         return true;
     }
     create(target) {
@@ -118,7 +124,7 @@ class TwoWayPropTemplateExpression {
         this.toView = toView;
         this.fromView = fromView;
     }
-    get $isExpression() {
+    get __te() {
         return true;
     }
     compile(node, target, context) {
@@ -129,7 +135,7 @@ class MultiPropBindingExpression {
     constructor(expressions) {
         this.expressions = expressions;
     }
-    get __i2() {
+    get __be() {
         return true;
     }
     create(target) {
@@ -146,7 +152,7 @@ class PropBindingExpression {
         this.expression = expression;
         this.context = context;
     }
-    get __i2() {
+    get __be() {
         return true;
     }
     create(target) {
@@ -166,7 +172,7 @@ class TwoWayPropBindingExpression {
         this.expressions = expressions;
         this.context = context;
     }
-    get __i2() {
+    get __be() {
         return true;
     }
     create(target) {
@@ -219,10 +225,10 @@ class TwoWayPropBinding {
 }
 
 function isExpression(v) {
-    return v?.$isExpression === true;
+    return v?.__te === true;
 }
 function isBindingExpression(v) {
-    return v?.__i2 === true;
+    return v?.__be === true;
 }
 function isSyntheticKey(key) {
     return /^a__\d+$/.test(key);
@@ -235,7 +241,9 @@ class Template {
         function compileNode(node) {
             return new CompiledTemplateNode(node.type, node.attrs === null
                 ? []
-                : Object.entries(node.attrs).map(([key, value]) => {
+                : Object
+                    .entries(node.attrs)
+                    .map(([key, value]) => {
                     const _isSyntheticKey = isSyntheticKey(key);
                     switch (typeof value) {
                         case 'object': {
