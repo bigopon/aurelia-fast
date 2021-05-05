@@ -1,5 +1,5 @@
 import { RefTemplateExpression, ViewModelRefTemplateExpression } from "./bindings/binding-ref";
-import { CompiledTemplateNode, IBinding } from './interfaces';
+import { CompiledTemplateNode, FromViewLambdaTemplateExpression, IBinding, LambdaTemplateExpression } from './interfaces';
 import type { ITemplateExpression, Scope, TemplateNode } from "./interfaces";
 import { IContainer } from "@aurelia/kernel";
 export declare class Template {
@@ -35,3 +35,4 @@ export declare function On<TSrc extends object = object>(event: 'mouseleave', ha
 export declare function On<TSrc extends object = object>(event: string, handler: (src: TSrc, e: Event, scope?: Scope) => unknown): ITemplateExpression<TSrc, Event>;
 export declare function Ref(key: string | symbol): RefTemplateExpression;
 export declare function ViewModelRef(key: string | symbol): ViewModelRefTemplateExpression;
+export declare function TwoWay<TScope extends object, TContext>(toView: LambdaTemplateExpression<TScope, unknown>, fromView: FromViewLambdaTemplateExpression<TScope, unknown>): ITemplateExpression<TScope, TContext>;

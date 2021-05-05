@@ -2,25 +2,25 @@ import type { IContainer } from "@aurelia/kernel";
 import type { ITemplateExpression, IBinding, IBindingExpression, TemplateNode, Scope } from "../interfaces";
 export declare class RefTemplateExpression implements ITemplateExpression<object, object> {
     readonly type: string | symbol;
-    $isExpression: true;
+    get __te(): true;
     constructor(type: string | symbol);
     compile(node: TemplateNode, target: string | null, context: IContainer): RefBindingExpression;
 }
 export declare class RefBindingExpression implements IBindingExpression<object, unknown> {
     readonly type: string | symbol;
-    get __i2(): true;
+    get __be(): true;
     constructor(type: string | symbol);
     create(target: Element): RefBinding;
 }
 export declare class ViewModelRefTemplateExpression implements ITemplateExpression<object, object> {
     readonly type: string | symbol;
-    $isExpression: true;
+    get __te(): true;
     constructor(type: string | symbol);
     compile(node: TemplateNode, target: string | null, context: IContainer): ViewModelRefBindingExpression;
 }
 export declare class ViewModelRefBindingExpression implements IBindingExpression<object, unknown> {
     readonly type: string | symbol;
-    get __i2(): true;
+    get __be(): true;
     constructor(type: string | symbol);
     create(target: Element): RefBinding;
 }

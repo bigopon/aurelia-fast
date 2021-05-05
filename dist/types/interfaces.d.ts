@@ -20,10 +20,10 @@ export declare type LambdaTemplateExpression<TSource, TContext = any> = (s: TSou
 export declare type FromViewLambdaTemplateExpression<TSrc, TContext = any, TVal = any> = (v: TVal, s: TSrc, c: TContext, sc: Scope) => unknown;
 export declare type TupleLambdaTemplateExpression<TSrc, TContext> = [
     toView: LambdaTemplateExpression<TSrc, TContext>,
-    fromView: never
-] | [toView: never, fromView: FromViewLambdaTemplateExpression<TSrc, TContext>] | [toView: LambdaTemplateExpression<TSrc, TContext>, fromView: FromViewLambdaTemplateExpression<TSrc, TContext>];
+    fromView: FromViewLambdaTemplateExpression<TSrc, TContext>
+] | [toView: undefined, fromView: FromViewLambdaTemplateExpression<TSrc, TContext>] | [toView: LambdaTemplateExpression<TSrc, TContext>, fromView: null];
 export interface ITemplateExpression<TSource, TContext> {
-    readonly $isExpression: true;
+    readonly __te: true;
     /**
      * @param node The host element that this template expression belongs.
      * - For attribute, this should be the owning node
@@ -38,7 +38,7 @@ export declare type IMultiTemplateExpression<TSource, TContext> = {
     [key: string]: LambdaTemplateExpression<TSource, TContext> | TupleLambdaTemplateExpression<TSource, TContext> | ITemplateExpression<TSource, TContext>;
 };
 export interface IBindingExpression<TSource, TContext> {
-    readonly __i2: true;
+    readonly __be: true;
     create(target: Element): IBinding<TSource extends object ? TSource : object>;
 }
 export interface IBinding<T extends object = object> {
@@ -53,4 +53,4 @@ export interface Scope<T extends object = object> {
  * Represents the types of values that can be interpolated into a template.
  * @public
  */
-export declare type TemplateValue<TScope, TContext = any> = string | number | LambdaTemplateExpression<TScope> | TupleLambdaTemplateExpression<TScope, TContext> | ITemplateExpression<TScope, TContext> | IMultiTemplateExpression<TScope, TContext>;
+export declare type TemplateValue<TScope, TContext = any> = string | number | TupleLambdaTemplateExpression<TScope, TContext> | LambdaTemplateExpression<TScope> | ITemplateExpression<TScope, TContext> | IMultiTemplateExpression<TScope, TContext>;

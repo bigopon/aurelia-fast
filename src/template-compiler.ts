@@ -9,7 +9,7 @@ const MODE_COMMENT = 4;
 const MODE_PROP_SET = 5;
 const MODE_PROP_APPEND = 6;
 
-export function html<
+export /*#__PURE__*/function html<
   TSource,
   TContext = any,
   TValues extends TemplateValue<TSource, TContext>[] = TemplateValue<TSource, TContext>[]

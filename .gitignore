@@ -1,2 +1,3 @@
 node_modules
 test-output.json
+dist/types/test.d.ts

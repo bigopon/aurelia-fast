@@ -54,6 +54,7 @@ export class Template {
                         context
                       );
                     }
+                    // todo: from view & to view only compilation
                   } else {
                     return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
                       if (isExpression(value2)) {
@@ -73,6 +74,15 @@ export class Template {
                   return new PropBindingExpression(key, value, context);
                 }
               }
+              // todo: special character in attr name mapping
+              // click.trigger=
+              // prop.bind=
+              // prop.to-view
+              // prop.from-view
+              // prop.attr
+              // @click=${x => x}
+              // :prop=${x => x}
+              // .bool=${x => x}
               return { name: key, value };
             }),
         node.children.map(c => typeof c === 'string' ? c : compileNode(c))
@@ -105,6 +115,7 @@ export class CompiledTemplate {
         if (isBindingExpression(attrOrBindingExpression)) {
           bindings.push(attrOrBindingExpression.create(node));
         } else {
+          // todo: check for bindable on the custom element prop
           const { name, value } = attrOrBindingExpression;
           if (/^data-|aria-|\w+:\w+/.test(name as string)) {
             node.setAttribute(name as string, value);

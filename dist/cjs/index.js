@@ -268,6 +268,7 @@ class Template {
                                 if (toView && fromView) {
                                     return new TwoWayPropBindingExpression(key, value, context);
                                 }
+                                // todo: from view & to view only compilation
                             }
                             else {
                                 return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
@@ -289,6 +290,15 @@ class Template {
                             return new PropBindingExpression(key, value, context);
                         }
                     }
+                    // todo: special character in attr name mapping
+                    // click.trigger=
+                    // prop.bind=
+                    // prop.to-view
+                    // prop.from-view
+                    // prop.attr
+                    // @click=${x => x}
+                    // :prop=${x => x}
+                    // .bool=${x => x}
                     return { name: key, value };
                 }), node.children.map(c => typeof c === 'string' ? c : compileNode(c)));
         }
@@ -316,6 +326,7 @@ class CompiledTemplate {
                     bindings.push(attrOrBindingExpression.create(node));
                 }
                 else {
+                    // todo: check for bindable on the custom element prop
                     const { name, value } = attrOrBindingExpression;
                     if (/^data-|aria-|\w+:\w+/.test(name)) {
                         node.setAttribute(name, value);
@@ -510,15 +521,6 @@ const build = function (statics) {
     commit();
     return current.length > 2 ? current.slice(1) : current[1];
 };
-
-html `
-    <div ${x => x.count} ${On('click', (x, e) => x)} @click=${x => x} />
-    <button ${On('click', (x, e) => x.onClick(e))} />
-    <button ${On('mousedown', (x, e) => x.onMouseEnter(e))}>
-    <div square=${{ color: x => x.color, bg: x => x.background }} />
-    <div square=${{ color: [x => x.color, (x, a) => a.background = x], bg: x => x.background }} />
-    <input value=${TwoWay(x => x.message, (v, x) => x.message = v)} />
-`;
 
 exports.On = On;
 exports.Ref = Ref;

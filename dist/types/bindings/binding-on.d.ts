@@ -3,7 +3,7 @@ import type { ITemplateExpression, LambdaTemplateExpression, IBinding, IBindingE
 export declare class OnTemplateExpression<T extends EventTarget = EventTarget> implements ITemplateExpression<T, Event> {
     readonly type: string;
     readonly expression: LambdaTemplateExpression<T, Event>;
-    $isExpression: true;
+    get __te(): true;
     constructor(type: string, expression: LambdaTemplateExpression<T, Event>);
     compile(node: TemplateNode, target: string | null, context: IContainer): OnBindingExpression<T>;
 }
@@ -11,7 +11,7 @@ export declare class OnBindingExpression<T extends EventTarget> implements IBind
     readonly type: string;
     readonly expression: LambdaTemplateExpression<T, Event>;
     constructor(type: string, expression: LambdaTemplateExpression<T, Event>);
-    get __i2(): true;
+    get __be(): true;
     create(target: Element): EventBinding<T>;
 }
 export declare class EventBinding<T extends EventTarget> implements IBinding<T> {

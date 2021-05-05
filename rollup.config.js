@@ -1,4 +1,5 @@
-import typescript from '@rollup/plugin-typescript'
+import typescript from '@rollup/plugin-typescript';
+import { terser } from "rollup-plugin-terser";
 
 export default {
   input: 'src/index.ts',
@@ -10,6 +11,18 @@ export default {
     format: 'cjs',
     sourcemap: true,
     file: 'dist/cjs/index.js',
+  }, {
+    format: 'es',
+    sourcemap: true,
+    file: 'dist/esm/index.min.js',
+    plugins: [,
+      terser({
+        ecma: 2020,
+        compress: {
+          pure_funcs: ['html']
+        }
+      })
+    ]
   }],
   plugins: [
     typescript({
