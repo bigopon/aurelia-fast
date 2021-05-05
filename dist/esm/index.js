@@ -316,6 +316,8 @@ class CompiledTemplate {
             // if n.type === 'string'
             //  get custom element resource
             //  if no, then proceed all binding
+            // todo:
+            // if n.type === 'template', handle differently
             const node = parent.appendChild(document.createElement(typeof n.type === 'string' ? n.type : n.type.name));
             n.attrs.forEach((attrOrBindingExpression) => {
                 if (isBindingExpression(attrOrBindingExpression)) {

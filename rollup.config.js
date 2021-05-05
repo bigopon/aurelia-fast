@@ -16,12 +16,14 @@ export default {
     sourcemap: true,
     file: 'dist/esm/index.min.js',
     plugins: [,
-      terser({
-        ecma: 2020,
-        compress: {
-          pure_funcs: ['html']
-        }
-      })
+      terser({ ecma: 2020 })
+    ]
+  }, {
+    format: 'cjs',
+    sourcemap: true,
+    file: 'dist/cjs/index.min.js',
+    plugins: [
+      terser({ ecma: 2020 })
     ]
   }],
   plugins: [
