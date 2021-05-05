@@ -25,7 +25,7 @@
     import { DI, Registration } from '@aurelia/kernel';
     import { IPlatform, StandardConfiguration } from '@aurelia/runtime-html';
     import { BrowserPlatform } from '@aurelia/platform-browser';
-    import { html, On } from './esm/index.js'
+    import { html, On, Ref } from './esm/index.js'
 
     const PLATFORM = BrowserPlatform.getOrCreate(globalThis);
     const container = DI.createContainer().register(
@@ -34,16 +34,27 @@
     );
 
     const rawTemplate = html`
-        <div textContent=${x => x.count} ${On('click', (x, e) => x)} @click=${x => x} />
+        <div textContent=${x => x.count} ${On('click', (x, e) => x)} @click=${x => x} ${Ref('div') }/>
+        <p textContent=${x => x.message}></p>
         <button ${On('click', (x, e)=> x.onClick(e))} textContent='Hello world' />
         <button ${On('mouseenter', (x, e) => x.onMouseEnter(e))} textContent='A self close button' />
+        <div data-role="group">
+            <input value=${[x => x.message, (v, x) => x.message = v]} />
+            <input value=${[x => x.message, (v, x) => x.message = v]} />
+            <button ${On('click', x => x.message = 'Hello world ' + Math.random())} textContent="Generate message" />
+        </div>
     `;
+    console.log(rawTemplate);
     const compiledTemplate = rawTemplate.compile(container);
     const view = compiledTemplate.render();
     view.appendTo(document.body);
     view.bind({
         source: window.source = {
+            message: 'Hello world',
             _count: 0,
+            set div(d) {
+                console.log('<div/> is:', d);
+            },
             get count() {
                 return this._count;
             },

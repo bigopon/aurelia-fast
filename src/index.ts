@@ -1,5 +1,6 @@
 import { html } from "./template-compiler";
-import { On, Ref, ViewModelRef } from "./template";
+import { On, Ref, TwoWay, ViewModelRef } from "./template";
+import { TupleLambdaTemplateExpression } from "./interfaces";
 
 interface App {
     name: string;
@@ -18,6 +19,9 @@ html<App>`
     <button ${On('mousedown', (x, e) => x.onMouseEnter(e))}>
     <div square=${{ color: x => x.color, bg: x => x.background }} />
     <div square=${{ color: [x => x.color, (x: string, a) => a.background = x], bg: x => x.background }} />
+    <input value=${TwoWay(x => x.message, (v: any, x) => x.message = v)} />
 `
 
-export { html, On, Ref, ViewModelRef };
+const a: TupleLambdaTemplateExpression<App, object> = [, (v, x) => x.message = v];
+
+export { html, On, Ref, ViewModelRef, TwoWay };

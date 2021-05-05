@@ -117,6 +117,18 @@ class RefBinding {
     }
 }
 
+class TwoWayPropTemplateExpression {
+    constructor(toView, fromView) {
+        this.toView = toView;
+        this.fromView = fromView;
+    }
+    get $isExpression() {
+        return true;
+    }
+    compile(node, target, context) {
+        return new TwoWayPropBindingExpression(target, [this.toView, this.fromView], context);
+    }
+}
 class MultiPropBindingExpression {
     constructor(expressions) {
         this.expressions = expressions;
@@ -152,6 +164,19 @@ class PropBindingExpression {
         // throw new Error("Method not implemented.");
     }
 }
+class TwoWayPropBindingExpression {
+    constructor(key, expressions, context) {
+        this.key = key;
+        this.expressions = expressions;
+        this.context = context;
+    }
+    get __i2() {
+        return true;
+    }
+    create(target) {
+        return new TwoWayPropBinding(this.key, target, this.expressions, this.context.get(runtime.IObserverLocator));
+    }
+}
 class ToTargetPropBinding {
     constructor(key, target, expression, observerLocator) {
         this.key = key;
@@ -165,6 +190,32 @@ class ToTargetPropBinding {
         }, true);
         watcher.$bind();
         this.target[this.key] = this.expression(scope.source, scope, scope);
+    }
+    unbind() {
+        throw new Error("Method not implemented.");
+    }
+}
+class TwoWayPropBinding {
+    constructor(key, target, expressions, observerLocator) {
+        this.key = key;
+        this.target = target;
+        this.expressions = expressions;
+        this.observerLocator = observerLocator;
+    }
+    bind(scope) {
+        const targetObsever = this.observerLocator.getObserver(this.target, this.key);
+        targetObsever.setValue(this.expressions[0](scope.source, scope, scope), 0, this.target, this.key);
+        targetObsever.subscribe({
+            handleChange: (newValue) => {
+                this.expressions[1](newValue, scope.source, null, scope);
+            }
+        });
+        const watcher = new runtimeHtml.ComputedWatcher(scope.source, this.observerLocator, this.expressions[0], (newValue) => {
+            if (this.target[this.key] !== newValue) {
+                this.target[this.key] = newValue;
+            }
+        }, true);
+        watcher.$bind();
     }
     unbind() {
         throw new Error("Method not implemented.");
@@ -186,38 +237,52 @@ class Template {
     }
     compile(context) {
         function compileNode(node) {
-            return new CompiledTemplateNode(node.type, Object.entries(node.attrs).map(([key, value]) => {
-                const _isSyntheticKey = isSyntheticKey(key);
-                switch (typeof value) {
-                    case 'object': {
-                        if (value === null) {
-                            throw new Error('Expression cannot be null');
-                        }
-                        if (isExpression(value)) {
-                            return value.compile(node, _isSyntheticKey ? null : key, context);
-                        }
-                        else {
-                            return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
-                                if (isExpression(value2)) {
-                                    value2 = value2.compile(node, _isSyntheticKey ? null : key2, context);
+            return new CompiledTemplateNode(node.type, node.attrs === null
+                ? []
+                : Object.entries(node.attrs).map(([key, value]) => {
+                    const _isSyntheticKey = isSyntheticKey(key);
+                    switch (typeof value) {
+                        case 'object': {
+                            if (value === null) {
+                                throw new Error('Expression cannot be null');
+                            }
+                            if (isExpression(value)) {
+                                return value.compile(node, _isSyntheticKey ? null : key, context);
+                            }
+                            else if (value instanceof Array) {
+                                if (_isSyntheticKey) {
+                                    throw new Error('Array syntax cannot be used without target prop');
                                 }
-                                else if (typeof value2 === 'function') {
-                                    value2 = new PropBindingExpression(key2, value2, context);
+                                const [toView, fromView] = value;
+                                if (typeof toView !== 'function' && typeof fromView !== 'function') {
+                                    throw new Error('Binding must be at least have 1 direction');
                                 }
-                                obj[key2] = value2;
-                                return obj;
-                            }, {}));
+                                if (toView && fromView) {
+                                    return new TwoWayPropBindingExpression(key, value, context);
+                                }
+                            }
+                            else {
+                                return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
+                                    if (isExpression(value2)) {
+                                        value2 = value2.compile(node, _isSyntheticKey ? null : key2, context);
+                                    }
+                                    else if (typeof value2 === 'function') {
+                                        value2 = new PropBindingExpression(key2, value2, context);
+                                    }
+                                    obj[key2] = value2;
+                                    return obj;
+                                }, {}));
+                            }
+                        }
+                        case 'function': {
+                            if (_isSyntheticKey) {
+                                throw new Error(`No key for lambda: ${value.toString()}`);
+                            }
+                            return new PropBindingExpression(key, value, context);
                         }
                     }
-                    case 'function': {
-                        if (_isSyntheticKey) {
-                            throw new Error(`No key for lambda: ${value.toString()}`);
-                        }
-                        return new PropBindingExpression(key, value, context);
-                    }
-                }
-                return { name: key, value };
-            }), node.children.map(c => typeof c === 'string' ? c : compileNode(c)));
+                    return { name: key, value };
+                }), node.children.map(c => typeof c === 'string' ? c : compileNode(c)));
         }
         return new CompiledTemplate(this.nodes.map(compileNode));
     }
@@ -229,18 +294,34 @@ class CompiledTemplate {
     render() {
         const fragment = document.createDocumentFragment();
         const bindings = [];
-        this.nodes.forEach(n => {
-            const node = fragment.appendChild(document.createElement(typeof n.type === 'string' ? n.type : n.type.name));
+        function renderNode(n, parent) {
+            // todo:
+            // if n.type === 'function'
+            //  get custom element resource
+            //  get custom element name
+            // if n.type === 'string'
+            //  get custom element resource
+            //  if no, then proceed all binding
+            const node = parent.appendChild(document.createElement(typeof n.type === 'string' ? n.type : n.type.name));
             n.attrs.forEach((attrOrBindingExpression) => {
                 if (isBindingExpression(attrOrBindingExpression)) {
                     bindings.push(attrOrBindingExpression.create(node));
                 }
                 else {
                     const { name, value } = attrOrBindingExpression;
-                    node[name] = value;
+                    if (/^data-|aria-|\w+:\w+/.test(name)) {
+                        node.setAttribute(name, value);
+                    }
+                    else {
+                        node[name] = value;
+                    }
                 }
             });
-        });
+            n.children.forEach(cn => typeof cn === 'string'
+                ? node.appendChild(document.createTextNode(cn))
+                : renderNode(cn, node));
+        }
+        this.nodes.forEach(n => renderNode(n, fragment));
         return new View(fragment, bindings);
     }
 }
@@ -283,6 +364,9 @@ function Ref(key) {
 }
 function ViewModelRef(key) {
     return new ViewModelRefTemplateExpression(key);
+}
+function TwoWay(toView, fromView) {
+    return new TwoWayPropTemplateExpression(toView, fromView);
 }
 
 const MODE_SLASH = 0;
@@ -425,10 +509,12 @@ html `
     <button ${On('mousedown', (x, e) => x.onMouseEnter(e))}>
     <div square=${{ color: x => x.color, bg: x => x.background }} />
     <div square=${{ color: [x => x.color, (x, a) => a.background = x], bg: x => x.background }} />
+    <input value=${TwoWay(x => x.message, (v, x) => x.message = v)} />
 `;
 
 exports.On = On;
 exports.Ref = Ref;
+exports.TwoWay = TwoWay;
 exports.ViewModelRef = ViewModelRef;
 exports.html = html;
 //# sourceMappingURL=index.js.map

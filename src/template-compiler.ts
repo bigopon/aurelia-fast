@@ -9,7 +9,11 @@ const MODE_COMMENT = 4;
 const MODE_PROP_SET = 5;
 const MODE_PROP_APPEND = 6;
 
-export function html<TSource, TContext = any>(strings: TemplateStringsArray, ...values: TemplateValue<TSource, TContext>[]) {
+export function html<
+  TSource,
+  TContext = any,
+  TValues extends TemplateValue<TSource, TContext>[] = TemplateValue<TSource, TContext>[]
+>(strings: TemplateStringsArray, ...values: TValues) {
   return new Template((build as any).call(createNode, strings, ...values));
 }
 

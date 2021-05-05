@@ -1,8 +1,8 @@
 import { OnTemplateExpression } from "./bindings/binding-on";
 import { RefTemplateExpression, ViewModelRefTemplateExpression } from "./bindings/binding-ref";
-import { CompiledTemplateNode, IBinding, IBindingExpression } from './interfaces';
+import { CompiledTemplateNode, FromViewLambdaTemplateExpression, IBinding, IBindingExpression, LambdaTemplateExpression, TupleLambdaTemplateExpression } from './interfaces';
 import type { ICompiledAttr, ITemplateExpression, Scope, TemplateNode } from "./interfaces";
-import { MultiPropBindingExpression, PropBindingExpression } from "./bindings/binding-prop";
+import { MultiPropBindingExpression, PropBindingExpression, TwoWayPropBindingExpression, TwoWayPropTemplateExpression } from "./bindings/binding-prop";
 import { IContainer } from "@aurelia/kernel";
 
 function isExpression<T1 extends object = object, T2 = unknown>(v: unknown): v is ITemplateExpression<T1, T2> {
@@ -26,7 +26,9 @@ export class Template {
     function compileNode(node: TemplateNode): CompiledTemplateNode {
       return new CompiledTemplateNode(
         node.type,
-        Object.entries(node.attrs).map(([key, value]) => {
+        node.attrs === null
+          ? []
+          : Object.entries(node.attrs).map(([key, value]) => {
           const _isSyntheticKey = isSyntheticKey(key);
           switch (typeof value) {
             case 'object': {
@@ -35,6 +37,21 @@ export class Template {
               }
               if (isExpression(value)) {
                 return value.compile(node, _isSyntheticKey ? null : key, context);
+              } else if (value instanceof Array) {
+                if (_isSyntheticKey) {
+                  throw new Error('Array syntax cannot be used without target prop');
+                }
+                const [toView, fromView] = value;
+                if (typeof toView !== 'function' && typeof fromView !== 'function') {
+                  throw new Error('Binding must be at least have 1 direction');
+                }
+                if (toView && fromView) {
+                  return new TwoWayPropBindingExpression(
+                    key,
+                    value as [LambdaTemplateExpression<object, unknown>, FromViewLambdaTemplateExpression<object, unknown>],
+                    context
+                  );
+                }
               } else {
                 return new MultiPropBindingExpression(Object.entries(value).reduce((obj, [key2, value2]) => {
                   if (isExpression(value2)) {
@@ -73,17 +90,34 @@ export class CompiledTemplate {
   render() {
     const fragment = document.createDocumentFragment();
     const bindings: IBinding<object>[] = [];
-    this.nodes.forEach(n => {
-      const node = fragment.appendChild(document.createElement(typeof n.type === 'string' ? n.type : n.type.name));
+    function renderNode(n: CompiledTemplateNode, parent: Node): void {
+      // todo:
+      // if n.type === 'function'
+      //  get custom element resource
+      //  get custom element name
+      // if n.type === 'string'
+      //  get custom element resource
+      //  if no, then proceed all binding
+      const node = parent.appendChild(document.createElement(typeof n.type === 'string' ? n.type : n.type.name));
       n.attrs.forEach((attrOrBindingExpression) => {
         if (isBindingExpression(attrOrBindingExpression)) {
           bindings.push(attrOrBindingExpression.create(node));
         } else {
           const { name, value } = attrOrBindingExpression;
-          (node as any)[name] = value;
+          if (/^data-|aria-|\w+:\w+/.test(name as string)) {
+            node.setAttribute(name as string, value);
+          } else {
+            (node as any)[name] = value;
+          }
         }
       });
-    });
+      n.children.forEach(cn =>
+        typeof cn === 'string'
+          ? node.appendChild(document.createTextNode(cn))
+          : renderNode(cn, node)
+      );
+    }
+    this.nodes.forEach(n => renderNode(n, fragment));
     return new View(fragment, bindings);
   }
 }
@@ -148,4 +182,11 @@ export function Ref(key: string | symbol) {
 
 export function ViewModelRef(key: string | symbol) {
   return new ViewModelRefTemplateExpression(key);
+}
+
+export function TwoWay<TScope extends object, TContext>(
+  toView: LambdaTemplateExpression<TScope, unknown>,
+  fromView: FromViewLambdaTemplateExpression<TScope, unknown>,
+): ITemplateExpression<TScope, TContext> {
+  return new TwoWayPropTemplateExpression<TScope>(toView, fromView);
 }
