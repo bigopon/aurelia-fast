@@ -1,5 +1,6 @@
 import { IObserverLocator } from '@aurelia/runtime';
-import { ComputedWatcher } from '@aurelia/runtime-html';
+import { ComputedWatcher, INode, Controller, IObserverLocator as IObserverLocator$1, Scope, CustomAttribute } from '@aurelia/runtime-html';
+import { Registration } from '@aurelia/kernel';
 
 class TemplateNode {
     constructor(type, attrs, children) {
@@ -119,6 +120,12 @@ class RefBinding {
     }
 }
 
+class NotImplementedError extends Error {
+    constructor(message) {
+        super(message ? `Not implemented: ${message}` : 'Not implemented');
+    }
+}
+
 class TwoWayPropTemplateExpression {
     constructor(toView, fromView) {
         this.toView = toView;
@@ -143,7 +150,7 @@ class MultiPropBindingExpression {
             throw new Error('Invalid usage of prop binding expression. Example: prop=${x => x.value}');
         }
         target.$au?.viewModel;
-        throw new Error('not implemented');
+        throw new NotImplementedError();
     }
 }
 class PropBindingExpression {
@@ -180,39 +187,39 @@ class TwoWayPropBindingExpression {
     }
 }
 class ToTargetPropBinding {
-    constructor(key, target, expression, observerLocator) {
+    constructor(key, target, expression, oLocator) {
         this.key = key;
         this.target = target;
         this.expression = expression;
-        this.observerLocator = observerLocator;
+        this.oLocator = oLocator;
     }
     bind(scope) {
-        const watcher = new ComputedWatcher(scope.source, this.observerLocator, this.expression, (newValue) => {
+        const watcher = new ComputedWatcher(scope.source, this.oLocator, this.expression, (newValue) => {
             this.target[this.key] = newValue;
         }, true);
         watcher.$bind();
         this.target[this.key] = this.expression(scope.source, scope, scope);
     }
     unbind() {
-        throw new Error("Method not implemented.");
+        throw new NotImplementedError();
     }
 }
 class TwoWayPropBinding {
-    constructor(key, target, expressions, observerLocator) {
+    constructor(key, target, exprs, oLocator) {
         this.key = key;
         this.target = target;
-        this.expressions = expressions;
-        this.observerLocator = observerLocator;
+        this.exprs = exprs;
+        this.oLocator = oLocator;
     }
     bind(scope) {
-        const targetObsever = this.observerLocator.getObserver(this.target, this.key);
-        targetObsever.setValue(this.expressions[0](scope.source, scope, scope), 0, this.target, this.key);
+        const targetObsever = this.oLocator.getObserver(this.target, this.key);
+        targetObsever.setValue(this.exprs[0](scope.source, scope, scope), 0, this.target, this.key);
         targetObsever.subscribe({
             handleChange: (newValue) => {
-                this.expressions[1](newValue, scope.source, null, scope);
+                this.exprs[1](newValue, scope.source, null, scope);
             }
         });
-        const watcher = new ComputedWatcher(scope.source, this.observerLocator, this.expressions[0], (newValue) => {
+        const watcher = new ComputedWatcher(scope.source, this.oLocator, this.exprs[0], (newValue) => {
             if (this.target[this.key] !== newValue) {
                 this.target[this.key] = newValue;
             }
@@ -220,7 +227,99 @@ class TwoWayPropBinding {
         watcher.$bind();
     }
     unbind() {
-        throw new Error("Method not implemented.");
+        throw new NotImplementedError();
+    }
+}
+
+class CustomAttributeBindingExpression {
+    constructor(context, Type, expressions) {
+        this.context = context;
+        this.Type = Type;
+        this.expressions = expressions;
+    }
+    get __be() {
+        return true;
+    }
+    create(target) {
+        const container = this.context.createChild();
+        container.register(Registration.instance(INode, target), Registration.instance(Element, target), Registration.instance(HTMLElement, target));
+        const attrVm = container.invoke(this.Type);
+        const attrController = Controller.forCustomAttribute(null, this.context, attrVm, target, 0);
+        return new CustomAttributeBinding(attrController, this.expressions, this.context.get(IObserverLocator$1));
+    }
+}
+class CustomAttributeBinding {
+    constructor(controller, expressions, oLocator) {
+        this.controller = controller;
+        this.expressions = expressions;
+        this.oLocator = oLocator;
+        this.watchers = [];
+    }
+    bind(scope) {
+        const source = scope.source;
+        const { controller, controller: { viewModel }, expressions } = this;
+        controller.activate(controller, null, 2 /* fromBind */, Scope.create(source));
+        // lol
+        // (viewModel as any).bind?.(scope);
+        if (typeof expressions === 'function') {
+            const observer = this.oLocator.getObserver(viewModel, 'value');
+            const watcher = new ComputedWatcher(source, this.oLocator, expressions, (newValue) => { observer.setValue(newValue, 0); }, true);
+            observer.setValue(expressions(source, scope, scope), 0);
+            watcher.$bind();
+            this.watchers.push(watcher);
+        }
+        else if (expressions instanceof Array) {
+            throw new NotImplementedError('CA two way binding');
+        }
+        else {
+            for (const prop in expressions) {
+                const expression = expressions[prop];
+                if (expression instanceof Array) {
+                    throw new NotImplementedError('CA two way binding');
+                }
+                if (typeof expression !== 'function') {
+                    throw new NotImplementedError('Only lambda supported for CA binding');
+                }
+                const observer = this.oLocator.getAccessor(viewModel, prop);
+                const watcher = new ComputedWatcher(source, this.oLocator, expression, (newValue) => { observer.setValue(newValue, 0); }, true);
+                observer.setValue(expression(source, scope, scope), 0);
+                watcher.$bind();
+                this.watchers.push(watcher);
+            }
+        }
+    }
+    unbind() {
+        throw new NotImplementedError();
+    }
+}
+
+class StyleBindingExpression {
+    constructor(context, expressions) {
+        this.context = context;
+        this.expressions = expressions;
+    }
+    get __be() { return true; }
+    create(target) {
+        return new StyleBinding(target, this.expressions, this.context.get(IObserverLocator));
+    }
+}
+class StyleBinding {
+    constructor(el, expressions, oLocator) {
+        this.el = el;
+        this.expressions = expressions;
+        this.oLocator = oLocator;
+    }
+    bind(scope) {
+        const source = scope.source;
+        const { expressions, el } = this;
+        for (const prop in expressions) {
+            const expression = expressions[prop];
+            const watcher = new ComputedWatcher(source, this.oLocator, expression, (newValue) => { el.style[prop] = newValue; }, true);
+            el.style[prop] = expression(scope.source, scope, scope);
+            watcher.$bind();
+        }
+    }
+    unbind() {
     }
 }
 
@@ -245,6 +344,47 @@ class Template {
                     .entries(node.attrs)
                     .map(([key, value]) => {
                     const _isSyntheticKey = isSyntheticKey(key);
+                    if (!_isSyntheticKey) {
+                        const customAttr = context.find(CustomAttribute, key);
+                        if (customAttr) {
+                            const expressions = {};
+                            if (value == null) {
+                                throw new Error('Expression cannot be null');
+                            }
+                            switch (typeof value) {
+                                case 'object': {
+                                    if (isExpression(value)) {
+                                        // todo:
+                                        // this is not right, value prop isn't correct
+                                        expressions['value'] = value.compile(node, key, context);
+                                    }
+                                    else if (!(value instanceof Array)) {
+                                        // validate the usage a bit
+                                        // value is IMultiTemplateExpression
+                                        for (const prop in value) {
+                                            const v = value[prop];
+                                            if (isExpression(v)) {
+                                                expressions[prop] = v.compile(node, prop, context);
+                                                continue;
+                                            }
+                                            if (typeof v === 'function'
+                                                || (v instanceof Array && (typeof v[0] === 'function' || typeof v[1] === 'function'))) {
+                                                expressions[prop] = v;
+                                            }
+                                            else {
+                                                throw new Error('Invalid CA binding usage');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return new CustomAttributeBindingExpression(context, customAttr.Type, expressions);
+                        }
+                    }
+                    switch (key) {
+                        case 'style':
+                            return new StyleBindingExpression(context, value);
+                    }
                     switch (typeof value) {
                         case 'object': {
                             if (value === null) {

@@ -1,6 +1,7 @@
 import type { IContainer } from "@aurelia/kernel";
-import { IObserverLocator, ObservableGetter } from "@aurelia/runtime";
-import { ComputedWatcher } from '@aurelia/runtime-html';
+import { IObserverLocator as IObserverLocator, ObservableGetter } from "@aurelia/runtime";
+import { ComputedWatcher as ComputedWatcher } from '@aurelia/runtime-html';
+import { NotImplementedError } from "../error";
 import { IBinding, IBindingExpression, LambdaTemplateExpression, ITemplateExpression, TemplateNode, Scope, FromViewLambdaTemplateExpression, TupleLambdaTemplateExpression } from "../interfaces";
 
 export class PropTemplateExpression<T extends object = object> implements ITemplateExpression<T, object> {
@@ -17,7 +18,7 @@ export class PropTemplateExpression<T extends object = object> implements ITempl
     if (!target) {
       throw new Error('Invalid usage of prop binding expression. Example: prop=${x => x.value}');
     }
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError();
   }
 }
 
@@ -51,7 +52,7 @@ export class MultiPropTemplateExpression<T extends object = object> implements I
     if (!target) {
       throw new Error('Invalid usage of prop binding expression. Example: prop=${x => x.value}');
     }
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError();
   }
 }
 
@@ -73,7 +74,7 @@ export class MultiPropBindingExpression<T extends object = object> implements IB
     if (vm) {
 
     }
-    throw new Error('not implemented');
+    throw new NotImplementedError();
   }
 }
 
@@ -125,7 +126,7 @@ export class ToTargetPropBinding implements IBinding {
     readonly key: string | symbol,
     readonly target: any,
     readonly expression: LambdaTemplateExpression<object>,
-    readonly observerLocator: IObserverLocator,
+    readonly oLocator: IObserverLocator,
   ) {
 
   }
@@ -133,7 +134,7 @@ export class ToTargetPropBinding implements IBinding {
   bind(scope: Scope): void {
     const watcher = new ComputedWatcher(
       scope.source as any,
-      this.observerLocator,
+      this.oLocator,
       this.expression,
       (newValue) => {
         this.target[this.key] = newValue;
@@ -145,16 +146,16 @@ export class ToTargetPropBinding implements IBinding {
   }
 
   unbind(): void {
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError();
   }
 }
 
 export class ToSourcePropBinding implements IBinding {
   bind(scope: Scope): void {
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError();
   }
   unbind(): void {
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError();
   }
 }
 
@@ -162,25 +163,25 @@ export class TwoWayPropBinding<T extends object = object> implements IBinding {
   constructor(
     readonly key: string | symbol,
     readonly target: any,
-    readonly expressions: [LambdaTemplateExpression<T>, FromViewLambdaTemplateExpression<T>],
-    readonly observerLocator: IObserverLocator,
+    readonly exprs: [LambdaTemplateExpression<T>, FromViewLambdaTemplateExpression<T>],
+    readonly oLocator: IObserverLocator,
   ) {
 
   }
 
   bind(scope: Scope<T>): void {
-    const targetObsever = this.observerLocator.getObserver(this.target, this.key);
-    targetObsever.setValue(this.expressions[0](scope.source, scope, scope), 0, this.target, this.key);
+    const targetObsever = this.oLocator.getObserver(this.target, this.key);
+    targetObsever.setValue(this.exprs[0](scope.source, scope, scope), 0, this.target, this.key);
     targetObsever.subscribe({
       handleChange: (newValue) => {
-        this.expressions[1](newValue, scope.source, null, scope);
+        this.exprs[1](newValue, scope.source, null, scope);
       }
     });
 
     const watcher = new ComputedWatcher(
       scope.source as any,
-      this.observerLocator,
-      this.expressions[0] as ObservableGetter,
+      this.oLocator,
+      this.exprs[0] as ObservableGetter,
       (newValue) => {
         if (this.target[this.key] !== newValue) {
           this.target[this.key] = newValue;
@@ -191,6 +192,6 @@ export class TwoWayPropBinding<T extends object = object> implements IBinding {
     watcher.$bind();
   }
   unbind(): void {
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError();
   }
 }

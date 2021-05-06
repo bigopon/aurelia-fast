@@ -1,4 +1,4 @@
-import { DI, IContainer } from '@aurelia/kernel';
+import type { IContainer } from '@aurelia/kernel';
 
 export class TemplateNode {
   constructor(
@@ -48,6 +48,12 @@ export type IMultiTemplateExpression<TSource, TContext> = {
   [key: string]: LambdaTemplateExpression<TSource, TContext>
     | TupleLambdaTemplateExpression<TSource, TContext>
     | ITemplateExpression<TSource, TContext>;
+}
+
+export type IMultiBindingExpression<TSource, TContext> = {
+  [key: string]: LambdaTemplateExpression<TSource, TContext>
+    | TupleLambdaTemplateExpression<TSource, TContext>
+    | IBindingExpression<TSource, TContext>
 }
 
 export interface IBindingExpression<TSource, TContext> {

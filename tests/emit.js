@@ -16,7 +16,7 @@ fs.writeFileSync(
             <input value=${[x => x.message, (v, x) => x.message = v]} />
             <button ${On('click', x => x.message = 'Hello world ' + Math.random())} textContent="Generate message" />
         </div>
-    `, (key, value) => {
+    `.nodes, (key, value) => {
         if (typeof value === 'function') {
             return value.toString()
         }

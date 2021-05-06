@@ -1,9 +1,12 @@
 import { OnTemplateExpression } from "./bindings/binding-on";
 import { RefTemplateExpression, ViewModelRefTemplateExpression } from "./bindings/binding-ref";
-import { CompiledTemplateNode, FromViewLambdaTemplateExpression, IBinding, IBindingExpression, LambdaTemplateExpression, TupleLambdaTemplateExpression } from './interfaces';
-import type { ICompiledAttr, ITemplateExpression, Scope, TemplateNode } from "./interfaces";
+import { CompiledTemplateNode, FromViewLambdaTemplateExpression, IBinding, IBindingExpression, IMultiBindingExpression, LambdaTemplateExpression } from './interfaces';
+import type { ITemplateExpression, Scope, TemplateNode } from "./interfaces";
 import { MultiPropBindingExpression, PropBindingExpression, TwoWayPropBindingExpression, TwoWayPropTemplateExpression } from "./bindings/binding-prop";
-import { IContainer } from "@aurelia/kernel";
+import type { IContainer } from "@aurelia/kernel";
+import { CustomAttribute } from "@aurelia/runtime-html";
+import { CustomAttributeBindingExpression } from "./bindings/binding-custom-attr";
+import { StyleBindingExpression } from "./bindings/binding-style";
 
 function isExpression<T1 extends object = object, T2 = unknown>(v: unknown): v is ITemplateExpression<T1, T2> {
   return (v as unknown as ITemplateExpression<T1, T2>)?.__te === true;
@@ -32,6 +35,46 @@ export class Template {
             .entries(node.attrs)
             .map(([key, value]) => {
               const _isSyntheticKey = isSyntheticKey(key);
+              if (!_isSyntheticKey) {
+                const customAttr = context.find(CustomAttribute, key);
+                if (customAttr) {
+                  const expressions: IMultiBindingExpression<object, unknown> = {};
+                  if (value == null) {
+                    throw new Error('Expression cannot be null');
+                  }
+                  switch (typeof value) {
+                    case 'object': {
+                      if (isExpression(value)) {
+                        // todo:
+                        // this is not right, value prop isn't correct
+                        expressions['value'] = value.compile(node, key, context);
+                      } else if (!(value instanceof Array)) {
+                        // validate the usage a bit
+                        // value is IMultiTemplateExpression
+                        for (const prop in value) {
+                          const v = value[prop];
+                          if (isExpression(v)) {
+                            expressions[prop] = v.compile(node, prop, context);
+                            continue;
+                          }
+                          if (typeof v === 'function'
+                            || (v instanceof Array && (typeof v[0] === 'function' || typeof v[1] === 'function'))
+                          ) {
+                            expressions[prop] = v;
+                          } else {
+                            throw new Error('Invalid CA binding usage');
+                          }
+                        }
+                      }
+                    }
+                  }
+                  return new CustomAttributeBindingExpression(context, customAttr.Type, expressions);
+                }
+              }
+              switch (key) {
+                case 'style':
+                  return new StyleBindingExpression(context, value);
+              }
               switch (typeof value) {
                 case 'object': {
                   if (value === null) {

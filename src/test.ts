@@ -20,6 +20,7 @@ html<App>`
     <div square=${{ color: x => x.color, bg: x => x.background }} />
     <div square=${{ color: [x => x.color, (x: string, a) => a.background = x], bg: x => x.background }} />
     <input value=${TwoWay(x => x.message, (v: any, x) => x.message = v)} />
+    <input value=${[x => x.message, (v: any, x: App) => x.message = v]} />
 `;
 
 const a: TupleLambdaTemplateExpression<App, object> = [, (v, x) => x.message = v];

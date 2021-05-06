@@ -23,7 +23,7 @@
 </script>
 <script type="module">
     import { DI, Registration } from '@aurelia/kernel';
-    import { IPlatform, StandardConfiguration } from '@aurelia/runtime-html';
+    import { IPlatform, StandardConfiguration, CustomAttribute } from '@aurelia/runtime-html';
     import { BrowserPlatform } from '@aurelia/platform-browser';
     import { html, On, Ref } from './esm/index.js'
 
@@ -32,6 +32,7 @@
         Registration.instance(IPlatform, PLATFORM),
         StandardConfiguration,
     );
+    registerResources(container);
 
     const rawTemplate = html`
         <div textContent=${x => x.count} ${On('click', (x, e) => x)} @click=${x => x} ${Ref('div') }/>
@@ -39,18 +40,28 @@
         <button ${On('click', (x, e)=> x.onClick(e))} textContent='Hello world' />
         <button ${On('mouseenter', (x, e) => x.onMouseEnter(e))} textContent='A self close button' />
         <div data-role="group">
-            <input value=${[x => x.message, (v, x) => x.message = v]} />
-            <input value=${[x => x.message, (v, x) => x.message = v]} />
+            <input value=${[x => x.message, (v, x) => x.message = v]} /><br/>
+            Size: <input type="range" value=${[x => x.size, (v, x) => x.size = v]} max=1000 step=20 /><br/>
+            Red: <input type="range" value=${[x => x.red, (v, x) => x.red = v]} max=255 min=0 /> <br/>
+            Green: <input type="range" value=${[x => x.green, (v, x) => x.green = v]} max=255 min=0 /> <br/>
+            Blue: <input type="range" value=${[x => x.blue, (v, x) => x.blue = v]} max=255 min=0 /> <br/>
             <button ${On('click', x => x.message = 'Hello world ' + Math.random())} textContent="Generate message" />
+            <div square=${{ background: x => x.background, size: x => x.size }} />
+            <div style=${{ marginTop: x => '5px', background: x => x.background, width: x => `${x.size}px`, height: x => `${x.size}px`}} />
         </div>
     `;
     console.log(rawTemplate);
     const compiledTemplate = rawTemplate.compile(container);
-    const view = compiledTemplate.render();
+    console.log(compiledTemplate);
+    const view = window.view = compiledTemplate.render();
     view.appendTo(document.body);
     view.bind({
         source: window.source = {
             message: 'Hello world',
+            red: 255,
+            green: 0,
+            blue: 0,
+            size: 5,
             _count: 0,
             set div(d) {
                 console.log('<div/> is:', d);
@@ -58,11 +69,8 @@
             get count() {
                 return this._count;
             },
-            get color() {
-                console.log('accessed color')
-            },
             get background() {
-                console.log('accessed background');
+                return `rgb(${this.red}, ${this.green}, ${this.blue})`;
             },
             onClick(e) {
                 this._count++;
@@ -74,5 +82,36 @@
             
         }
     });
+
+    function registerResources(container) {
+        container.register(
+            CustomAttribute.define({
+                name: 'square',
+                bindables: ['background', 'size']
+            }, class Square {
+                static get inject() { return [Element] }
+
+                constructor(element) {
+                    this.background = '';
+                    this.size = 0;
+                    this.element = element;
+                }
+
+                bind() {
+                    console.log('setting');
+                    this.element.style.background = this.background;
+                    this.element.style.width = this.element.style.height = `${this.size}px`;
+                }
+
+                backgroundChanged(newValue) {
+                    this.element.style.background = this.background;
+                }
+                
+                sizeChanged() {
+                    this.element.style.width = this.element.style.height = `${this.size}px`;
+                }
+            })
+        );
+    }
 
 </script>
